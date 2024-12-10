@@ -1,0 +1,11 @@
+warning: 
+  --> $DIR/main.rs:9:18
+   |
+LL |     let tester = some_generic_function::<flecs::With>();
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of flecs::With in generic argument is discouraged
+   = note: `#[warn(no_flecs_with)]` on by default
+
+warning: 1 warning emitted
+

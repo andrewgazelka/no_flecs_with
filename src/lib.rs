@@ -49,19 +49,45 @@ use rustc_lint::LintContext;
 
 impl<'tcx> LateLintPass<'tcx> for NoFlecsWith {
     fn check_expr(&mut self, cx: &rustc_lint::LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        let ExprKind::Path(ref qpath) = expr.kind else {
-            return;
-        };
+        match expr.kind {
+            ExprKind::Path(ref qpath) => {
+                let QPath::Resolved(_, path) = qpath else {
+                    return;
+                };
 
-
-        let QPath::Resolved(_, path) = qpath else {
-            return;
-        };
-
-        if path_matches_flecs_with(path) {
-            cx.span_lint(NO_FLECS_WITH, expr.span, |diag| {
-                diag.note("usage of flecs::With is discouraged");
-            });
+                if path_matches_flecs_with(path) {
+                    cx.span_lint(NO_FLECS_WITH, expr.span, |diag| {
+                        diag.note("usage of flecs::With is discouraged");
+                    });
+                }
+            }
+            ExprKind::Call(func, _) => {
+                // Only check the function's path for generic arguments
+                if let ExprKind::Path(QPath::Resolved(_, path)) = &func.kind {
+                    if let Some(segment) = path.segments.last() {
+                        if let Some(args) = &segment.args {
+                            // Check if any of the generic arguments contain flecs::With
+                            if args.args.iter().any(|arg| {
+                                if let rustc_hir::GenericArg::Type(ty) = arg {
+                                    if let rustc_hir::TyKind::Path(QPath::Resolved(_, path)) =
+                                        &ty.kind
+                                    {
+                                        return path_matches_flecs_with(path);
+                                    }
+                                }
+                                false
+                            }) {
+                                cx.span_lint(NO_FLECS_WITH, expr.span, |diag| {
+                                    diag.note(
+                                        "usage of flecs::With in generic argument is discouraged",
+                                    );
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            _ => {}
         }
     }
 }
