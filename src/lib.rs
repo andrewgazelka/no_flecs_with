@@ -3,6 +3,7 @@
 #![warn(unused_extern_crates)]
 
 extern crate rustc_arena;
+
 extern crate rustc_ast;
 extern crate rustc_ast_pretty;
 extern crate rustc_attr;
