@@ -53,19 +53,16 @@ impl<'tcx> LateLintPass<'tcx> for NoFlecsWith {
             return;
         };
 
+
+        let QPath::Resolved(_, path) = qpath else {
+            return;
+        };
+
+        if path_matches_flecs_with(path) {
             cx.span_lint(NO_FLECS_WITH, expr.span, |diag| {
                 diag.note("usage of flecs::With is discouraged");
             });
-
-        // let QPath::Resolved(_, path) = qpath else {
-        //     return;
-        // };
-
-        // if path_matches_flecs_with(path) {
-        //     cx.span_lint(NO_FLECS_WITH, expr.span, |diag| {
-        //         diag.note("usage of flecs::With is discouraged");
-        //     });
-        // }
+        }
     }
 }
 
